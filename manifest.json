@@ -1,0 +1,9 @@
+{
+  "id": "scripts",
+  "name": "Scripts",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Link script files (.sh, .js, .mjs, .ts, .py...) in your notes and run them inline.",
+  "author": "Matthew Nitschke",
+  "isDesktopOnly": true
+}
