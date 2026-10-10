@@ -9,6 +9,9 @@ Link a script anywhere in a note — `[[deploy]]`, `[[deploy.mjs]]` or `![[deplo
 
 Put the cursor inside the link in Live Preview to edit it as plain text. Script files open in a built-in editor (syntax highlighting + run block). Create scripts from the file explorer context menu (**New script**), by right-clicking an uncreated `[[name.mjs]]` link (**Create script**), or with the **Create new script** command.
 
+https://github.com/user-attachments/assets/c1bd6a59-65e1-4134-bdea-ac8a99a76b9c
+
+
 ## Running
 
 Scripts run with `zx --install <script>` (the command is configurable), so `$`, `cd`, `fs`, `chalk`, etc. are globals and imported packages are installed automatically. A trailing `// @version` comment pins a version:
