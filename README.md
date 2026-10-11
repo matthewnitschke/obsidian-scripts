@@ -3,7 +3,8 @@
 
 Keep [zx](https://google.github.io/zx/) scripts (`.mjs`, `.js`, `.ts`, `.mts`) in your vault and run them from your notes.
 
-<img width="1280" height="720" alt="demo" src="https://github.com/user-attachments/assets/50c6d54a-3057-4f08-b718-5704b1320f0c" />
+<img width="1280" height="680" alt="demo" src="https://github.com/user-attachments/assets/1c428fc6-5004-404d-a103-5ea63755cb5c" />
+
 
 Link a script anywhere in a note — `[[deploy]]`, `[[deploy.mjs]]` or `![[deploy.mjs]]` — and it renders as a block:
 
