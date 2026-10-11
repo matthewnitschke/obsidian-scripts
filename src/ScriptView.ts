@@ -1,4 +1,4 @@
-import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap, indentWithTab, toggleComment } from "@codemirror/commands";
 import { indentOnInput, bracketMatching } from "@codemirror/language";
 import { EditorState, Prec } from "@codemirror/state";
 import {
@@ -9,7 +9,7 @@ import {
 	keymap,
 	lineNumbers,
 } from "@codemirror/view";
-import { Menu, TextFileView, type TFile, type WorkspaceLeaf } from "obsidian";
+import { Menu, Scope, TextFileView, type TFile, type WorkspaceLeaf } from "obsidian";
 import type ScriptsPlugin from "./main";
 import { scriptCompletions } from "./completions";
 import { editorLanguage, languageInfo } from "./languages";
@@ -30,6 +30,12 @@ export class ScriptView extends TextFileView {
 		private plugin: ScriptsPlugin,
 	) {
 		super(leaf);
+		// Obsidian's global Mod-/ is an editor command that needs its own Editor, which this raw CodeMirror view lacks
+		this.scope = new Scope(this.app.scope);
+		this.scope.register(["Mod"], "/", () => {
+			if (this.editor) toggleComment(this.editor);
+			return false;
+		});
 	}
 
 	getViewType() {
@@ -107,6 +113,7 @@ export class ScriptView extends TextFileView {
 				EditorState.tabSize.of(4),
 				Prec.highest(
 					keymap.of([
+						{ key: "Mod-/", run: toggleComment },
 						{
 							key: "Shift-Enter",
 							run: () => {
@@ -119,6 +126,8 @@ export class ScriptView extends TextFileView {
 				),
 				keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
 				editorLanguage(this.file?.extension ?? ""),
+				// Fallback so Mod-/ works even when no language (and so no comment syntax) is attached
+				EditorState.languageData.of(() => [{ commentTokens: { line: "//" } }]),
 				scriptCompletions(),
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged && !this.settingData) this.requestSave();

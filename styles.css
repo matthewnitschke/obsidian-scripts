@@ -248,3 +248,50 @@ select.dropdown.scripts-block-output-type {
 .scripts-view-editor .cm-builtin { color: var(--code-important); }
 
 .scripts-modal-error { color: var(--text-error); font-size: var(--font-ui-smaller); }
+
+/* Mermaid's xychart paints an opaque background rect; the init directive doesn't always reach it */
+.scripts-block-rendered .mermaid svg .background rect,
+.scripts-block-rendered .mermaid svg rect.background {
+	fill: transparent !important;
+}
+
+/* The init directive's plotColorPalette isn't applied by Obsidian's mermaid, so color plots from the theme */
+.scripts-block-rendered .mermaid svg .bar-plot-0 rect { fill: var(--interactive-accent) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-0 path { stroke: var(--interactive-accent) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-1 rect { fill: var(--color-blue) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-1 path { stroke: var(--color-blue) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-2 rect { fill: var(--color-green) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-2 path { stroke: var(--color-green) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-3 rect { fill: var(--color-orange) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-3 path { stroke: var(--color-orange) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-4 rect { fill: var(--color-purple) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-4 path { stroke: var(--color-purple) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-5 rect { fill: var(--color-red) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-5 path { stroke: var(--color-red) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-6 rect { fill: var(--color-cyan) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-6 path { stroke: var(--color-cyan) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-7 rect { fill: var(--color-yellow) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-7 path { stroke: var(--color-yellow) !important; }
+.scripts-block-rendered .mermaid svg .bar-plot-8 rect { fill: var(--color-pink) !important; }
+.scripts-block-rendered .mermaid svg .line-plot-8 path { stroke: var(--color-pink) !important; }
+
+/* Same for pie slices and their legend swatches (slices and legend entries are in series order) */
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(1) { fill: var(--interactive-accent) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(1) rect { fill: var(--interactive-accent) !important; stroke: var(--interactive-accent) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(2) { fill: var(--color-blue) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(2) rect { fill: var(--color-blue) !important; stroke: var(--color-blue) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(3) { fill: var(--color-green) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(3) rect { fill: var(--color-green) !important; stroke: var(--color-green) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(4) { fill: var(--color-orange) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(4) rect { fill: var(--color-orange) !important; stroke: var(--color-orange) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(5) { fill: var(--color-purple) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(5) rect { fill: var(--color-purple) !important; stroke: var(--color-purple) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(6) { fill: var(--color-red) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(6) rect { fill: var(--color-red) !important; stroke: var(--color-red) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(7) { fill: var(--color-cyan) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(7) rect { fill: var(--color-cyan) !important; stroke: var(--color-cyan) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(8) { fill: var(--color-yellow) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(8) rect { fill: var(--color-yellow) !important; stroke: var(--color-yellow) !important; }
+.scripts-block-rendered .mermaid svg path.pieCircle:nth-of-type(9) { fill: var(--color-pink) !important; }
+.scripts-block-rendered .mermaid svg g.legend:nth-of-type(9) rect { fill: var(--color-pink) !important; stroke: var(--color-pink) !important; }
+.scripts-block-rendered .mermaid svg .pieCircle { stroke: var(--background-primary) !important; opacity: 1 !important; }

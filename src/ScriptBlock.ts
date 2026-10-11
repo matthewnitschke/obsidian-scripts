@@ -358,7 +358,9 @@ export class ScriptBlock extends MarkdownRenderChild {
 		const c = (v: string) => this.cssColor(v);
 		const text = c("--text-normal");
 		const muted = c("--text-muted");
-		const palette = ["--interactive-accent", "--color-blue", "--color-green", "--color-orange", "--color-purple", "--color-red", "--color-cyan", "--color-yellow", "--color-pink"].map(c);
+		// Hex, because xyChart's plotColorPalette is comma-split and rgb() values contain commas
+		const palette = ["--interactive-accent", "--color-blue", "--color-green", "--color-orange", "--color-purple", "--color-red", "--color-cyan", "--color-yellow", "--color-pink"].map((v) => toHex(c(v)));
+		const pie = Object.fromEntries(palette.map((color, i) => [`pie${i + 1}`, color]));
 		const init = {
 			theme: "base",
 			themeVariables: {
@@ -401,6 +403,12 @@ export class ScriptBlock extends MarkdownRenderChild {
 		this.markdownComponent = this.addChild(new Component());
 		void MarkdownRenderer.render(this.plugin.app, markdown, this.renderedEl, this.sourcePath ?? this.file.path, this.markdownComponent);
 	}
+}
+
+/** `rgb(1, 2, 3)` / `rgba(...)` to `#010203` */
+function toHex(color: string): string {
+	const [r, g, b] = (color.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+	return "#" + [r, g, b].map((n) => Math.round(n || 0).toString(16).padStart(2, "0")).join("");
 }
 
 const MIN_HEIGHT = 40;
