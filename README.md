@@ -9,32 +9,44 @@ Link a script anywhere in a note — `[[deploy]]`, `[[deploy.mjs]]` or `![[deplo
 
 Put the cursor inside the link in Live Preview to edit it as plain text. Script files open in a built-in editor (syntax highlighting, autocomplete for zx globals and `cache()`, run block). For intellisense and type checking in an external editor (VS Code, Cursor), run the **Set up editor types for this script's folder** command, which writes a `tsconfig.json` next to the script; install zx there (`pnpm add -D zx`). Create scripts from the file explorer context menu (**New script**), by right-clicking an uncreated `[[name.mjs]]` link (**Create script**), or with the **Create new script** command.
 
-## Running
+https://github.com/user-attachments/assets/c1bd6a59-65e1-4134-bdea-ac8a99a76b9c
 
-Scripts run with `zx --install <script>` (the command is configurable), so `$`, `cd`, `fs`, `chalk`, etc. are globals and imported packages are installed automatically. A trailing `// @version` comment pins a version:
+## Features
+
+### Output formats
+
+Supports 3 output formats: `text`, `table`, and `mermaid`
+
+Text converts a csv output of the script into a markdown rendered table, mermaid does the same for [MermaidJs](https://mermaid.js.org/) text
+
+<img width="1176" height="720" alt="table-output" src="https://github.com/user-attachments/assets/ae2a34e3-dc7e-48ad-b356-77b7d59a6079" />
+
+<img width="1056" height="720" alt="mermaid-output" src="https://github.com/user-attachments/assets/08ac0541-1d55-4856-9f5c-9220d3f7c198" />
+
+### Arguments
+
+Declare `argv.varName` in scripts to opt into argument passing
+
+<img width="1264" height="720" alt="args" src="https://github.com/user-attachments/assets/7232b2cb-bf56-4369-84d9-9f8c0c9aea56" />
+
+### Builtin Cache
+
+Cache long running jobs with builtin `cache` function
 
 ```js
-import { kebabCase } from "lodash-es"
+let waitTime = argv.time;
+let res = await cache('job', () => $`sleep ${waitTime}`, [waitTime])
+```
+
+### Dependencies
+
+Uses [`zx`](https://github.com/google/zx) for executing scripts. Declare dependencies inline with optional `// @version` annotation.
+
+```js
 import chalk from "chalk" // @5.3.0
 ```
 
-`zx --install` installs into a `node_modules` folder next to the script, so it ends up in your vault. Consider adding `node_modules` to **Settings → Files and links → Excluded files**.
-
-### `cache()`
-
-Wrap expensive work in `cache(key, fn, deps?)` to reuse its result on later runs:
-
-```js
-const repos = await cache("repos", () => $`gh repo list --json name`.json())
-const out = await cache("log", () => $`git log --since=${since}`, [since])   // zx output: .stdout, .json(), .lines() still work
-const data = await cache("repo", () => fetchRepo(argv.id), [argv.id])
-```
-
-Each key holds one result. On a hit `fn` is never called. It's recomputed (and the result replaced) when the `deps` array or the function's source changes, like a `useMemo` that persists across runs.
-
-Results must be JSON-serializable and are stored per script in `~/.cache/obsidian-scripts/results/` (configurable). The `cache()` runtime is preloaded into zx via `NODE_OPTIONS=--import`.
-
-Blocks for scripts that use `cache(` show a **Run without cache** button (also a command), which reruns every `cache()` call and saves the fresh results. Cache hits/saves appear as dimmed lines in the output.
+Read more about dependencies in zx [here](https://google.github.io/zx/cli#install)
 
 ### Arguments
 
