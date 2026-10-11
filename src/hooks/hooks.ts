@@ -64,7 +64,7 @@ function sha1(...parts: string[]): string {
  * source) changed since it was cached; then calls `fn` and replaces the cached result.
  * Each key holds one result, like a `useMemo` that persists across runs.
  */
-async function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps: unknown[] = []): Promise<unknown> {
+async function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps: unknown[] = []): Promise<T> {
 	if (typeof key !== "string" || typeof fn !== "function") {
 		throw new TypeError('cache() takes a key and a function, e.g. await cache("repos", () => $`cmd`, [deps])');
 	}
@@ -80,7 +80,7 @@ async function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps: unknown
 			else if (entry.deps !== depsHash) message(`cache: dependencies of "${key}" changed, recomputing`);
 			else {
 				message(`cache: using "${key}" from ${age(Date.now() - entry.createdAt)} ago`);
-				return entry.process ? processOutput(entry.process) : entry.value;
+				return (entry.process ? processOutput(entry.process) : entry.value) as T;
 			}
 		} catch {
 			// Unreadable entry: recompute

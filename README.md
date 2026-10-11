@@ -7,7 +7,7 @@ Link a script anywhere in a note — `[[deploy]]`, `[[deploy.mjs]]` or `![[deplo
 - **Header:** script name, language, last run status (exit code + duration), **Run/Stop** and **Open** buttons
 - **Body:** streamed stdout/stderr from the last run
 
-Put the cursor inside the link in Live Preview to edit it as plain text. Script files open in a built-in editor (syntax highlighting + run block). Create scripts from the file explorer context menu (**New script**), by right-clicking an uncreated `[[name.mjs]]` link (**Create script**), or with the **Create new script** command.
+Put the cursor inside the link in Live Preview to edit it as plain text. Script files open in a built-in editor (syntax highlighting, autocomplete for zx globals and `cache()`, run block). For intellisense and type checking in an external editor (VS Code, Cursor), run the **Set up editor types for this script's folder** command, which writes a `tsconfig.json` next to the script; install zx there (`pnpm add -D zx`). Create scripts from the file explorer context menu (**New script**), by right-clicking an uncreated `[[name.mjs]]` link (**Create script**), or with the **Create new script** command.
 
 ## Running
 

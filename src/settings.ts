@@ -13,6 +13,10 @@ export interface ScriptsSettings {
 	zxCommand: string;
 	/** Where `cache()` results are stored (outside the vault). Empty = default. */
 	cacheDir: string;
+	/** Command for "Open in terminal"; `{dir}` is the script's folder, `{file}` the script */
+	terminalCommand: string;
+	/** Command for "Open in editor"; `{dir}` is the script's folder, `{file}` the script */
+	editorCommand: string;
 	/** How each script's output is shown, keyed by script path. Missing = "text". */
 	outputTypes: Record<string, OutputType>;
 }
@@ -25,6 +29,8 @@ export const DEFAULT_SETTINGS: ScriptsSettings = {
 	cwd: "vault",
 	zxCommand: "zx",
 	cacheDir: "",
+	terminalCommand: process.platform === "darwin" ? "open -a Terminal {dir}" : "",
+	editorCommand: process.platform === "darwin" ? "open {file}" : process.platform === "win32" ? "notepad {file}" : "xdg-open {file}",
 	outputTypes: {},
 };
 
@@ -91,6 +97,26 @@ export class ScriptsSettingTab extends PluginSettingTab {
 						settings.cacheDir = value.trim();
 						await this.plugin.saveSettings();
 					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Open in terminal command")
+			.setDesc("Run by the script block's menu. {dir} is the script's folder, {file} the script. E.g. `open -a iTerm {dir}`.")
+			.addText((text) =>
+				text.setValue(settings.terminalCommand).onChange(async (value) => {
+					settings.terminalCommand = value.trim();
+					await this.plugin.saveSettings();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Open in editor command")
+			.setDesc("Run by the script block's menu. {dir} is the script's folder, {file} the script. E.g. `code {file}`.")
+			.addText((text) =>
+				text.setValue(settings.editorCommand).onChange(async (value) => {
+					settings.editorCommand = value.trim();
+					await this.plugin.saveSettings();
+				}),
 			);
 
 		new Setting(containerEl).setName("Environment").setHeading();

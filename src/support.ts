@@ -19,6 +19,56 @@ export async function writeHooks(dataDir: string): Promise<string> {
 	return file;
 }
 
+export const TYPES_FILE = "globals.d.ts";
+
+const TYPES_SOURCE = `/// <reference types="zx/globals" />
+
+declare global {
+	/**
+	 * Returns the result cached under \`key\` without calling \`fn\`, unless there is none or
+	 * \`deps\` (or \`fn\`'s source) changed since it was cached.
+	 */
+	function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps?: unknown[]): Promise<Awaited<T>>;
+}
+
+export {};
+`;
+
+/** Writes the type declarations for the globals scripts get (zx + `cache()`); returns their path */
+export async function writeTypes(dataDir: string): Promise<string> {
+	await fs.mkdir(dataDir, { recursive: true });
+	const file = path.join(dataDir, TYPES_FILE);
+	await fs.writeFile(file, TYPES_SOURCE);
+	return file;
+}
+
+/** Writes a tsconfig.json into `dir` so external editors know the script globals; false if one exists */
+export async function writeEditorConfig(dir: string, typesFile: string): Promise<boolean> {
+	const file = path.join(dir, "tsconfig.json");
+	try {
+		await fs.access(file);
+		return false;
+	} catch {
+		// Doesn't exist yet
+	}
+	const config = {
+		compilerOptions: {
+			target: "ES2022",
+			module: "esnext",
+			moduleResolution: "bundler",
+			allowJs: true,
+			checkJs: true,
+			noEmit: true,
+			skipLibCheck: true,
+			types: ["node"],
+		},
+		include: ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.ts", "**/*.mts", "**/*.cts", typesFile],
+		exclude: ["node_modules"],
+	};
+	await fs.writeFile(file, JSON.stringify(config, null, 2) + "\n");
+	return true;
+}
+
 /** Where `cache()` results for a script are stored */
 export function resultsDir(dataDir: string, scriptPath: string): string {
 	return path.join(dataDir, "results", createHash("sha1").update(scriptPath).digest("hex").slice(0, 16));

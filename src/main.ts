@@ -1,8 +1,9 @@
 import { Editor, FileSystemAdapter, getLinkpath, MarkdownView, Menu, normalizePath, Notice, Plugin, TAbstractFile, TFile, TFolder, type MarkdownPostProcessorContext } from "obsidian";
 import { DEFAULT_SETTINGS, ScriptsSettingTab, type OutputType, type ScriptsSettings } from "./settings";
-import { defaultDataDir, moveResults, pruneResults, removeResults } from "./support";
+import { defaultDataDir, moveResults, pruneResults, removeResults, writeEditorConfig, writeTypes } from "./support";
 import * as path from "path";
 import * as os from "os";
+import { exec } from "child_process";
 import { ScriptRunner } from "./runner";
 import { ScriptBlock } from "./ScriptBlock";
 import { ScriptView, VIEW_TYPE_SCRIPT } from "./ScriptView";
@@ -103,7 +104,55 @@ export default class ScriptsPlugin extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "setup-editor-types",
+			name: "Set up editor types for this script's folder",
+			checkCallback: (checking) => {
+				const file = this.app.workspace.getActiveFile();
+				if (!file || !this.isScript(file)) return false;
+				if (!checking) void this.setupEditorTypes(file);
+				return true;
+			},
+		});
+
 		this.addSettingTab(new ScriptsSettingTab(this.app, this));
+	}
+
+	/** Runs the user's terminal/editor command for a script, with `{dir}` and `{file}` filled in */
+	async openExternally(file: TFile, kind: "terminal" | "editor") {
+		const template = kind === "terminal" ? this.settings.terminalCommand : this.settings.editorCommand;
+		const abs = this.absolutePath(file.path);
+		if (!abs) {
+			new Notice("Only available on desktop.");
+			return;
+		}
+		if (!template.trim()) {
+			new Notice(`Set the "Open in ${kind}" command in the plugin settings.`);
+			return;
+		}
+		const quote = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
+		const command = template.replace(/\{dir\}/g, quote(path.dirname(abs))).replace(/\{file\}/g, quote(abs));
+		try {
+			const env = await this.runner.shellEnv();
+			exec(command, { env, shell: this.settings.shell || undefined }, (err) => {
+				if (err) new Notice(`Could not open in ${kind}: ${err.message}`);
+			});
+		} catch (err) {
+			new Notice(`Could not open in ${kind}: ${err}`);
+		}
+	}
+
+	/** Writes tsconfig.json + globals.d.ts so external editors (VS Code, Cursor) get zx and cache() intellisense */
+	private async setupEditorTypes(file: TFile) {
+		const dir = this.absolutePath(file.parent?.path ?? "");
+		if (!dir) return;
+		try {
+			const typesFile = await writeTypes(this.dataDir());
+			const created = await writeEditorConfig(dir, typesFile);
+			new Notice(created ? "Wrote tsconfig.json; make sure zx is installed (pnpm add -D zx)" : "tsconfig.json already exists; add the types file to its include: " + typesFile);
+		} catch (err) {
+			new Notice(`Could not set up editor types: ${err}`);
+		}
 	}
 
 	async loadSettings() {

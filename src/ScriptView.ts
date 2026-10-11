@@ -1,6 +1,6 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { indentOnInput, bracketMatching } from "@codemirror/language";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Prec } from "@codemirror/state";
 import {
 	EditorView,
 	drawSelection,
@@ -9,8 +9,9 @@ import {
 	keymap,
 	lineNumbers,
 } from "@codemirror/view";
-import { TextFileView, type TFile, type WorkspaceLeaf } from "obsidian";
+import { Menu, TextFileView, type TFile, type WorkspaceLeaf } from "obsidian";
 import type ScriptsPlugin from "./main";
+import { scriptCompletions } from "./completions";
 import { editorLanguage, languageInfo } from "./languages";
 import { ScriptBlock } from "./ScriptBlock";
 
@@ -33,6 +34,20 @@ export class ScriptView extends TextFileView {
 
 	getViewType() {
 		return VIEW_TYPE_SCRIPT;
+	}
+
+	/** Adds to the "more options" (…) menu in the top right of the pane */
+	onPaneMenu(menu: Menu, source: string) {
+		const file = this.file;
+		if (file) {
+			menu.addItem((item) =>
+				item.setSection("scripts").setTitle("Open in terminal").setIcon("terminal").onClick(() => void this.plugin.openExternally(file, "terminal")),
+			);
+			menu.addItem((item) =>
+				item.setSection("scripts").setTitle("Open in editor").setIcon("square-pen").onClick(() => void this.plugin.openExternally(file, "editor")),
+			);
+		}
+		super.onPaneMenu(menu, source);
 	}
 
 	getIcon() {
@@ -90,8 +105,21 @@ export class ScriptView extends TextFileView {
 				indentOnInput(),
 				bracketMatching(),
 				EditorState.tabSize.of(4),
+				Prec.highest(
+					keymap.of([
+						{
+							key: "Shift-Enter",
+							run: () => {
+								if (!this.file) return false;
+								this.plugin.runner.run(this.file);
+								return true;
+							},
+						},
+					]),
+				),
 				keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
 				editorLanguage(this.file?.extension ?? ""),
+				scriptCompletions(),
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged && !this.settingData) this.requestSave();
 				}),

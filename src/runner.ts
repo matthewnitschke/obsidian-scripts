@@ -59,6 +59,8 @@ export class ScriptRunner {
 	private args = new Map<string, Record<string, string>>();
 	/** Output heights the user dragged blocks to, shared by every block for the script */
 	private heights = new Map<string, number>();
+	/** Widths the user dragged argument inputs to, by script path then argument name */
+	private argWidths = new Map<string, Record<string, number>>();
 	private nextRunId = 1;
 
 	constructor(private plugin: ScriptsPlugin) {}
@@ -97,6 +99,17 @@ export class ScriptRunner {
 		else this.heights.set(filePath, height);
 	}
 
+	getArgWidth(filePath: string, name: string): number | undefined {
+		return this.argWidths.get(filePath)?.[name];
+	}
+
+	setArgWidth(filePath: string, name: string, width: number | undefined) {
+		const widths = this.argWidths.get(filePath) ?? {};
+		if (width === undefined) delete widths[name];
+		else widths[name] = width;
+		this.argWidths.set(filePath, widths);
+	}
+
 	/** Moves state and listeners when a script is renamed */
 	rename(oldPath: string, newPath: string) {
 		const state = this.states.get(oldPath);
@@ -108,6 +121,11 @@ export class ScriptRunner {
 		if (height !== undefined) {
 			this.heights.delete(oldPath);
 			this.heights.set(newPath, height);
+		}
+		const widths = this.argWidths.get(oldPath);
+		if (widths) {
+			this.argWidths.delete(oldPath);
+			this.argWidths.set(newPath, widths);
 		}
 		const args = this.args.get(oldPath);
 		if (args) {

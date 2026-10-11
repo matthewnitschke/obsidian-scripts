@@ -78,7 +78,7 @@ export class ScriptBlock extends MarkdownRenderChild {
 		// (which would reveal the link source in Live Preview); the output stays selectable.
 		this.registerDomEvent(root, "mousedown", (e) => {
 			e.stopPropagation();
-			if (!(e.target instanceof Element && e.target.closest(".scripts-block-output, .scripts-block-rendered, .scripts-block-arg, select"))) e.preventDefault();
+			if (!(e.target instanceof Element && e.target.closest(".scripts-block-output, .scripts-block-rendered, .scripts-block-arg, .scripts-block-arg-wrap, select"))) e.preventDefault();
 		});
 		this.registerDomEvent(root, "click", (e) => e.stopPropagation());
 
@@ -195,7 +195,10 @@ export class ScriptBlock extends MarkdownRenderChild {
 
 		const { runner } = this.plugin;
 		for (const name of names) {
-			const input = this.argsEl.createEl("input", {
+			const wrap = this.argsEl.createDiv({ cls: "scripts-block-arg-wrap" });
+			const width = runner.getArgWidth(this.file.path, name);
+			if (width !== undefined) wrap.style.width = `${width}px`;
+			const input = wrap.createEl("input", {
 				cls: "scripts-block-arg",
 				type: "text",
 				placeholder: name,
@@ -209,7 +212,39 @@ export class ScriptBlock extends MarkdownRenderChild {
 					runner.run(this.file, this.sourcePath);
 				}
 			});
+			this.createArgResizeHandle(wrap, name);
 		}
+	}
+
+	/** Drag an input's left edge to resize it (dragging left widens it); double-click it to go back to the default width */
+	private createArgResizeHandle(wrap: HTMLElement, name: string) {
+		const { runner } = this.plugin;
+		const handle = wrap.createDiv({ cls: "scripts-block-arg-resize" });
+		setTooltip(handle, "Drag to resize, double-click to reset");
+
+		let startX = 0;
+		let startWidth = 0;
+		handle.addEventListener("pointerdown", (e) => {
+			e.preventDefault();
+			handle.setPointerCapture(e.pointerId);
+			startX = e.clientX;
+			startWidth = wrap.getBoundingClientRect().width;
+			handle.addClass("is-dragging");
+		});
+		handle.addEventListener("pointermove", (e) => {
+			if (!handle.hasPointerCapture(e.pointerId)) return;
+			const width = Math.max(MIN_ARG_WIDTH, Math.round(startWidth + startX - e.clientX));
+			runner.setArgWidth(this.file.path, name, width);
+			wrap.style.width = `${width}px`;
+		});
+		handle.addEventListener("pointerup", (e) => {
+			handle.releasePointerCapture(e.pointerId);
+			handle.removeClass("is-dragging");
+		});
+		handle.addEventListener("dblclick", () => {
+			runner.setArgWidth(this.file.path, name, undefined);
+			wrap.style.width = "";
+		});
 	}
 
 	private scheduleUpdate() {
@@ -319,6 +354,7 @@ export class ScriptBlock extends MarkdownRenderChild {
 }
 
 const MIN_HEIGHT = 40;
+const MIN_ARG_WIDTH = 60;
 
 function formatDuration(ms: number): string {
 	if (ms < 1000) return `${ms}ms`;
