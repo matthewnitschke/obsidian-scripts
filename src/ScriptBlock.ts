@@ -336,7 +336,57 @@ export class ScriptBlock extends MarkdownRenderChild {
 		if (type === "table") return csvToMarkdown(stdout);
 		// A partial diagram is a syntax error, so wait for the run to finish
 		if (state.status === "running" || !stdout.trim()) return "";
-		return fenced("mermaid", stdout.trim());
+		return fenced("mermaid", this.withThemeInit(stdout.trim()));
+	}
+
+	/** Resolves an Obsidian CSS variable to a concrete `rgb()` color mermaid can parse */
+	private cssColor(variable: string): string {
+		const probe = this.containerEl.createSpan();
+		probe.style.color = `var(${variable})`;
+		const color = getComputedStyle(probe).color;
+		probe.remove();
+		return color;
+	}
+
+	/**
+	 * Mermaid's own palette (black chart background, near-black bars) ignores Obsidian's theme, so
+	 * prepend an init directive built from the theme's colors. Diagrams that bring their own
+	 * `%%{init}%%` or frontmatter config are left alone.
+	 */
+	private withThemeInit(diagram: string): string {
+		if (diagram.startsWith("---") || diagram.includes("%%{")) return diagram;
+		const c = (v: string) => this.cssColor(v);
+		const text = c("--text-normal");
+		const muted = c("--text-muted");
+		const palette = ["--interactive-accent", "--color-blue", "--color-green", "--color-orange", "--color-purple", "--color-red", "--color-cyan", "--color-yellow", "--color-pink"].map(c);
+		const init = {
+			theme: "base",
+			themeVariables: {
+				background: "transparent",
+				fontFamily: getComputedStyle(this.containerEl).getPropertyValue("--font-interface") || "sans-serif",
+				primaryColor: c("--background-secondary"),
+				primaryTextColor: text,
+				primaryBorderColor: c("--background-modifier-border-hover"),
+				secondaryColor: c("--background-primary-alt"),
+				tertiaryColor: c("--background-primary"),
+				lineColor: muted,
+				textColor: text,
+				xyChart: {
+					backgroundColor: "transparent",
+					titleColor: text,
+					xAxisLabelColor: text,
+					xAxisTitleColor: text,
+					xAxisTickColor: muted,
+					xAxisLineColor: muted,
+					yAxisLabelColor: text,
+					yAxisTitleColor: text,
+					yAxisTickColor: muted,
+					yAxisLineColor: muted,
+					plotColorPalette: palette.join(","),
+				},
+			},
+		};
+		return `%%{init: ${JSON.stringify(init)}}%%\n${diagram}`;
 	}
 
 	private renderMarkdown(markdown: string) {

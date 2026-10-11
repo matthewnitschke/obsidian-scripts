@@ -76,9 +76,7 @@ async function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps: unknown
 	if (file && existsSync(file)) {
 		try {
 			const entry: Entry = JSON.parse(readFileSync(file, "utf8"));
-			if (refresh) message(`cache: refreshing "${key}"`);
-			else if (entry.deps !== depsHash) message(`cache: dependencies of "${key}" changed, recomputing`);
-			else {
+			if (!refresh && entry.deps === depsHash) {
 				message(`cache: using "${key}" from ${age(Date.now() - entry.createdAt)} ago`);
 				return (entry.process ? processOutput(entry.process) : entry.value) as T;
 			}
@@ -96,7 +94,6 @@ async function cache<T>(key: string, fn: () => T | PromiseLike<T>, deps: unknown
 		try {
 			mkdirSync(cacheDir!, { recursive: true });
 			writeFileSync(file, JSON.stringify(entry));
-			message(`cache: saved "${key}"`);
 		} catch (err) {
 			message(`cache: could not save "${key}": ${(err as Error).message}`);
 		}
