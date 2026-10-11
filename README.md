@@ -1,37 +1,42 @@
+# obsidian-scripts
 
-# Scripts
-
-Keep [zx](https://google.github.io/zx/) scripts (`.mjs`, `.js`, `.ts`, `.mts`) in your vault and run them from your notes.
+Run [zx](https://google.github.io/zx/) scripts in your vault and run them from your notes.
 
 <img width="1280" height="680" alt="demo" src="https://github.com/user-attachments/assets/1c428fc6-5004-404d-a103-5ea63755cb5c" />
 
-
-Link a script anywhere in a note — `[[deploy]]`, `[[deploy.mjs]]` or `![[deploy.mjs]]` — and it renders as a block:
-
-- **Header:** script name, language, last run status (exit code + duration), **Run/Stop** and **Open** buttons
-- **Body:** streamed stdout/stderr from the last run
-
-Put the cursor inside the link in Live Preview to edit it as plain text. Script files open in a built-in editor (syntax highlighting, autocomplete for zx globals and `cache()`, run block). For intellisense and type checking in an external editor (VS Code, Cursor), run the **Set up editor types for this script's folder** command, which writes a `tsconfig.json` next to the script; install zx there (`pnpm add -D zx`). Create scripts from the file explorer context menu (**New script**), by right-clicking an uncreated `[[name.mjs]]` link (**Create script**), or with the **Create new script** command.
-
-https://github.com/user-attachments/assets/c1bd6a59-65e1-4134-bdea-ac8a99a76b9c
-
 ## Features
+
+### Script Editing
+
+Edit scripts directly in obsidian with minimal autocomplete supported
+
+<img width="660" height="334" alt="Screenshot 2026-10-11 at 10 01 40 AM" src="https://github.com/user-attachments/assets/d1a99345-2aff-4ba6-bd9f-4451c34446f4" />
 
 ### Output formats
 
 Supports 3 output formats: `text`, `table`, and `mermaid`
 
-Text converts a csv output of the script into a markdown rendered table, mermaid does the same for [MermaidJs](https://mermaid.js.org/) text
+#### Text
 
-<img width="1176" height="720" alt="table-output" src="https://github.com/user-attachments/assets/ae2a34e3-dc7e-48ad-b356-77b7d59a6079" />
+<img width="659" height="231" alt="Screenshot 2026-10-11 at 10 06 31 AM" src="https://github.com/user-attachments/assets/747757c6-652a-4a40-bf68-be73fbb47fe7" />
 
-<img width="1056" height="720" alt="mermaid-output" src="https://github.com/user-attachments/assets/08ac0541-1d55-4856-9f5c-9220d3f7c198" />
+#### Table
+
+Output content as `csv`, it will be translated into a markdown table
+
+<img width="659" height="417" alt="Screenshot 2026-10-11 at 10 04 34 AM" src="https://github.com/user-attachments/assets/0eb66bfa-bf7f-4533-ab04-2af8732e27a2" />
+
+#### [MermaidJs](https://mermaid.js.org/)
+
+Supports all mermaidjs rendering functionality that is default supported in obsidian. Colors will match current obsidian theme values.
+
+<img width="659" height="733" alt="Screenshot 2026-10-11 at 10 05 13 AM" src="https://github.com/user-attachments/assets/bef4125d-b91d-406d-ac62-f5fa31e9eede" />
 
 ### Arguments
 
-Declare `argv.varName` in scripts to opt into argument passing
+Declare `argv.varName` in scripts to support into argument passing
 
-<img width="1264" height="720" alt="args" src="https://github.com/user-attachments/assets/7232b2cb-bf56-4369-84d9-9f8c0c9aea56" />
+<img width="1280" height="538" alt="argv" src="https://github.com/user-attachments/assets/66a4bd6f-8efc-4878-a120-5289f968c1a1" />
 
 ### Builtin Cache
 
@@ -51,22 +56,6 @@ import chalk from "chalk" // @5.3.0
 ```
 
 Read more about dependencies in zx [here](https://google.github.io/zx/cli#install)
-
-### Arguments
-
-Each flag the script reads from zx's `argv` (`argv.repo`, `argv["since-date"]`, `const { repo } = argv`) gets a text input in the block header. Non-empty values are passed as `--name=value`; press Enter in an input to run. Values are kept per script for the session; pass them as `cache()` deps to recompute when they change.
-
-Scripts run with the environment of an interactive login shell (your `.zshrc` PATH etc.), and receive:
-
-| Var | Value |
-| --- | --- |
-| `OBSIDIAN_VAULT` | Absolute vault path |
-| `OBSIDIAN_SCRIPT` | Absolute script path |
-| `OBSIDIAN_NOTE` | Absolute path of the note the block was run from (empty when run from the script view) |
-
-The working directory is the vault root (configurable to the script's folder). Output is shared per script and kept across re-renders; it's capped at 1M characters.
-
-Desktop only.
 
 ## Development
 
